@@ -18,38 +18,9 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-% gerando um vetor para identificar as amostras (posições)
-amostras = 1:length(serie);
+[ Residuo,~,~,~ ] = estimacao( serie, uyy, pc );
 
-% convertando o vetor uyy na matrix covariância
-Uyy = diag(uyy.^2);
-
-% Criando o vetor que indica as posiçoes do pontos de corte ativos (as extremidades
-% sempre estão ativas
-pontosAtivos = [1 find(pc==1)+1 length(serie)];
-
-N = length(pontosAtivos)-2; % número de pontos de corte
-
-% Avaliar as retas (Regressão de com múltiplos pontos de corte - RLMPC);
-Residuo = zeros(1,length(serie)+length(pontosAtivos)-2);
-
-for pos = 1:length(pontosAtivos)-1;
-    % obter os dados da reta
-    dadosReta  = serie(pontosAtivos(pos):pontosAtivos(pos+1))';
-    % obter os dados de x
-    xDummy     = [amostras(pontosAtivos(pos):pontosAtivos(pos+1));ones(1,length(dadosReta))]';
-    % matriz covariância
-    Uyy_aux    = Uyy(pontosAtivos(pos):pontosAtivos(pos+1),pontosAtivos(pos):pontosAtivos(pos+1));
-    % estimação dos parâmetros - WLS
-    parametros = (xDummy'/(Uyy_aux)*xDummy)\xDummy'/(Uyy_aux)*dadosReta;
-    
-    % salvando os resíduos
-    if pos == 1
-        Residuo(pontosAtivos(pos):pontosAtivos(pos+1)) = (dadosReta - xDummy*parametros);
-    else
-        Residuo(pontosAtivos(pos)+1:pontosAtivos(pos+1)+1) = (dadosReta - xDummy*parametros);
-    end
-end
+N = length(find(pc==1));
 
 SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);

@@ -30,5 +30,9 @@ options= [];
 % Algoritmo genético
 %                          ga(fitnessfcn                        ,nvars,...
 %                             A,b,[],[],LB,UB,nonlcon,IntCon,options)
-[x,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy),nvars,...
+[pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy),nvars,...
                               [],[],[],[],LB,UB,[],IntCon,options);
+                          
+[ ~,dadosReta,parametros,Uparametros ] = estimacao( serie, uyy, pontosCorte );
+
+dadosReta
