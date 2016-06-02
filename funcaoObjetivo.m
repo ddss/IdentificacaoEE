@@ -3,7 +3,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 %
 % Entradas:
 % pc: é um vetor linha de 0 e 1, identificando se o ponto de corte está ativo (0) ou inativo (1). 
-% Neste, deve ser excluído as extermidades, ou seja, ele tem 2 posições a
+% Neste, deve ser excluído as extremidades, ou seja, ele tem 2 posições a
 % menos do que a serie (Ex.: A posição n representa a posição n+1 na série)
 %
 % serie: é a série (vetor linha) de dados históricos, na qual deseja-se identificar os
@@ -24,7 +24,7 @@ amostras = 1:length(serie);
 % convertando o vetor uyy na matrix covariância
 Uyy = diag(uyy.^2);
 
-% Criando o vetor que indica os pontos de corte ativos (as extremidas
+% Criando o vetor que indica as posiçoes do pontos de corte ativos (as extremidades
 % sempre estão ativas
 pontosAtivos = [1 find(pc==1)+1 length(serie)];
 
@@ -33,7 +33,7 @@ N = length(pontosAtivos)-2; % número de pontos de corte
 % Avaliar as retas (Regressão de com múltiplos pontos de corte - RLMPC);
 Residuo = zeros(1,length(serie)+length(pontosAtivos)-2);
 
-for pos = 1:length(pontosAtivos)-1
+for pos = 1:length(pontosAtivos)-1;
     % obter os dados da reta
     dadosReta  = serie(pontosAtivos(pos):pontosAtivos(pos+1))';
     % obter os dados de x
@@ -51,8 +51,11 @@ for pos = 1:length(pontosAtivos)-1
     end
 end
 
+SSE = sum(Residuo.^2);
+SST = sum((serie-mean(serie)).^2);
+fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1));
 % valor da função objetivo
 % fobj = N*log(var(Residuo))+2*(N+1);
-fobj = sum(Residuo.^2) + 2*(N+1);
+% fobj = sum(Residuo.^2)+2*(N-1);
 % pensar no R2ajustado
 end
