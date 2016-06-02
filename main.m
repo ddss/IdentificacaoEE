@@ -6,14 +6,15 @@ close all
 clc
 
 %% Obtenção dos dados
-serie = [1,1,1,2,2,2,2,3,3,3];
+serie = [1.1,0.9,1.1,0.9,2,2.1,1.8,2,1.8,3.1,3,2.9,3,4,5,6,7];
 %pc    =   [0,1,0,0,0,1,0,0]; 
 uyy   = ones(1,length(serie)).^2;
 
+nRetas = 5;
 %% Otimização
 
 % número de variáveis de decisão
-nvars  = length(serie)-2;
+nvars  = nRetas;
 
 % Limite inferior
 LB = zeros(1,nvars);
@@ -33,6 +34,6 @@ options= [];
 [pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy),nvars,...
                               [],[],[],[],LB,UB,[],IntCon,options);
                           
-[ ~,dadosReta,parametros,Uparametros ] = estimacao( serie, uyy, pontosCorte );
+[ ~,retas,parametros,Uparametros ] = estimacao( serie, uyy, pontosCorte, true );
 
-dadosReta
+retas

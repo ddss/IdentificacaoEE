@@ -18,7 +18,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-[ Residuo,~,~,~ ] = estimacao( serie, uyy, pc );
+[ Residuo,~,~,~ ] = estimacao( serie, uyy, pc, false );
 
 N = length(find(pc==1));
 
@@ -26,7 +26,7 @@ SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);
 fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1));
 % valor da função objetivo
-% fobj = N*log(var(Residuo))+2*(N+1);
+%fobj = N*log(var(Residuo))+2*(N+1);
 % fobj = sum(Residuo.^2)+2*(N-1);
 % pensar no R2ajustado
 end
