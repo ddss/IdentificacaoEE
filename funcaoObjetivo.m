@@ -18,7 +18,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-[ Residuo,~,~,~,~,~] = estimacao( serie, uyy, pc, false );
+[ Residuo,~,~,~,~,~,~] = estimacao( serie, uyy, pc, false );
 
 N = 2*(sum(pc)+1);
 

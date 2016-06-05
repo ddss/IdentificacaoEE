@@ -10,9 +10,11 @@ clc
 serie = [1.02,0.95,1.01,0.97,2,2.01,1.89,2,1.89,3.01,3,2.95,3,4,5,6,7,4.1,4.08,4.12,4.06,4.09];
 %serie = [1 1 1 2 2 2 3 3 3] ;
 %pc    =   [0,1,0,0,0,1,0,0]; 
-uyy   = 0.01*ones(1,length(serie)).^2;
+uyy   = 0.001*ones(1,length(serie)).^2;
 
 nRetas = 12;
+
+PA = 0.95;
 %% Otimiza??o
 
 % n?mero de vari?veis de decis?o
@@ -36,7 +38,39 @@ options= [];
 [pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy),nvars,...
                               [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
                           
-[ residuo,retas,pontosAtivos,parametros,Uparametros,Residuos ] = estimacao( serie, uyy, pontosCorte, true );
+[ residuo,retas,pontosAtivos,parametros,Uparametros,Residuos,FuncaoObjetivo ] = estimacao( serie, uyy, pontosCorte, true );
+
+%% C?lculo da regi?o de abrang?ncia e verifica??o das retas candidatas
+% Aqui est? apenas se calculando os pontos extremos da elipse
+% Considerando que os par?metros seguem uma distribui??o normal
+
+posCandidatasEE = 1;
+for pos = 1:length(pontosAtivos)-1
+    
+    Fisher = finv(PA,2,(length(retas{pos})-2));
+    raioEllip = FuncaoObjetivo{pos}*(2/(length(retas{pos})-2)*Fisher);
+
+    parametro_aux = parametros{pos};
+        
+    invUparametros = inv(Uparametros{pos});
+    
+    fator = invUparametros(1,1)/(invUparametros(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
+    delta = sqrt(raioEllip/(fator^2*invUparametros(2,2)-2*fator*invUparametros(1,2)+invUparametros(1,1)));
+    coordenadas_x = [parametro_aux(1)+delta,parametro_aux(1)-delta];
+    coordenadas_y = [parametro_aux(2)-delta*fator,parametro_aux(2)+delta*fator];
+
+    fator = invUparametros(2,2)/(invUparametros(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
+    delta = sqrt(raioEllip/(fator^2*invUparametros(1,1)-2*fator*invUparametros(1,2)+invUparametros(2,2)));
+    coordenadas_y = [coordenadas_y [parametro_aux(2)+delta,parametro_aux(2)-delta]];
+    coordenadas_x = [coordenadas_x [parametro_aux(1)-delta*fator,parametro_aux(1)+delta*fator]];
+
+    % Obten??o das posi??es das retas candidatas a EE
+    % - verificar se e ellipse do par?metro a, cruza o zero.
+    if and(any(coordenadas_x>0), any(coordenadas_x<0))
+        CandidatasEE(posCandidatasEE) = pos;
+        posCandidatasEE = posCandidatasEE+1;
+    end
+end
 
 %% Figuras
 amostras = 1:length(serie);
@@ -56,11 +90,12 @@ ylabel('Serie','FontSize',12)
 set(ax,'FontSize',12)
 
 % Res?duos
-posCandidatasEE = [1,3,5,8];
 
-for pos = posCandidatasEE
+for pos = CandidatasEE
     figure()
     ax = subplot(1,1,1);
     boxplot(Residuos{pos})
     title(num2str(pos))
 end
+
+
