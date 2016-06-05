@@ -41,12 +41,26 @@ options= [];
 %% Figuras
 amostras = 1:length(serie);
 
+% S?rie de Dados
 figure()
 ax = subplot(1,1,1);
 hold(ax,'on')
-plot(amostras,serie)
+plot(amostras,serie,'.','MarkerSize',15)
 for pos = 1:length(pontosAtivos)-1
     x = [amostras(pontosAtivos(pos):pontosAtivos(pos+1));ones(1,length(retas{pos}))]';
     y = x*parametros{pos};
-    plot(x(:,1),y,'--');
+    plot(x(:,1),y,'--','LineWidth',1.5);
+end
+xlabel('Amostra','FontSize',12)
+ylabel('Serie','FontSize',12)
+set(ax,'FontSize',12)
+
+% Res?duos
+posCandidatasEE = [1,3,5,8];
+
+for pos = posCandidatasEE
+    figure()
+    ax = subplot(1,1,1);
+    boxplot(Residuos{pos})
+    title(num2str(pos))
 end
