@@ -123,16 +123,16 @@ for pos = CandidatasEE
     ax = subplot(1,1,1);
     hold(ax,'on')
     
-    amostra = 0:length(Residuos{pos})-1;
+    x = amostras(pontosAtivos(pos):pontosAtivos(pos+1));
     meanRes = mean(Residuos{pos});
     stdRes  = std(Residuos{pos});
     
     fatorK = tinv(PA,length(Residuos{pos})-1);
 
-    p1 = plot(amostra,Residuos{pos},'.','MarkerSize',15);  
-    p2 = plot([amostra(1) amostra(end)],[meanRes meanRes],'r--','LineWidth',2);
-    p3 = plot([amostra(1) amostra(end)],[meanRes+fatorK*stdRes meanRes+fatorK*stdRes],'r-.','LineWidth',2);
-    p4 = plot([amostra(1) amostra(end)],[meanRes-fatorK*stdRes meanRes-fatorK*stdRes],'r-.','LineWidth',2);
+    p1 = plot(x,Residuos{pos},'.','MarkerSize',15);  
+    p2 = plot([x(1) x(end)],[meanRes meanRes],'r--','LineWidth',2);
+    p3 = plot([x(1) x(end)],[meanRes+fatorK*stdRes meanRes+fatorK*stdRes],'r-.','LineWidth',2);
+    p4 = plot([x(1) x(end)],[meanRes-fatorK*stdRes meanRes-fatorK*stdRes],'r-.','LineWidth',2);
     
     leg = legend([p1,p2,p3],{'res?duos','m?dia','intervalo abrang?ncia'});
     
