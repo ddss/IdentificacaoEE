@@ -15,6 +15,8 @@ uyy   = 0.001*ones(1,length(serie)).^2;
 nRetas = 12;
 
 PA = 0.95;
+
+projeto = 'Teste';
 %% Otimiza??o
 
 % n?mero de vari?veis de decis?o
@@ -71,8 +73,17 @@ for pos = 1:length(pontosAtivos)-1
         posCandidatasEE = posCandidatasEE+1;
     end
 end
+%% Configura??es de diret?rio:
+% criando folder
+for pos = CandidatasEE
+    folder = strcat('./',projeto,'/','reta_',num2str(pos));
+    if not(exist(folder,'dir'))
+        mkdir(folder)
+    end
+end
 
 %% Figuras
+
 amostras = 1:length(serie);
 
 % S?rie de Dados
@@ -88,14 +99,53 @@ end
 xlabel('Amostra','FontSize',12)
 ylabel('Serie','FontSize',12)
 set(ax,'FontSize',12)
+saveas(gcf, strcat('./',projeto,'/','geral.png'))
 
 % Res?duos
-
 for pos = CandidatasEE
-    figure()
+    folder = strcat('./',projeto,'/','reta_',num2str(pos));
+
+    % BOXPLOT
+    
+    fig = figure('Visible','off');
     ax = subplot(1,1,1);
     boxplot(Residuos{pos})
+   
+    set(ax,'FontSize',12)
+    
     title(num2str(pos))
+    saveas(gcf,strcat(folder,'/residuos-boxplot.png'))
+    close(fig)
+    
+    % DISPERS?O
+    
+    fig = figure('Visible','off');
+    ax = subplot(1,1,1);
+    hold(ax,'on')
+    
+    amostra = 0:length(Residuos{pos})-1;
+    meanRes = mean(Residuos{pos});
+    stdRes  = std(Residuos{pos});
+    
+    fatorK = tinv(PA,length(Residuos{pos})-1);
+
+    p1 = plot(amostra,Residuos{pos},'.','MarkerSize',15);  
+    p2 = plot([amostra(1) amostra(end)],[meanRes meanRes],'r--','LineWidth',2);
+    p3 = plot([amostra(1) amostra(end)],[meanRes+fatorK*stdRes meanRes+fatorK*stdRes],'r-.','LineWidth',2);
+    p4 = plot([amostra(1) amostra(end)],[meanRes-fatorK*stdRes meanRes-fatorK*stdRes],'r-.','LineWidth',2);
+    
+    leg = legend([p1,p2,p3],{'res?duos','m?dia','intervalo abrang?ncia'});
+    
+    set(leg,'box','off','Location','SouthOutside','Orientation','horizontal')
+    
+    xlabel('Amostra','FontSize',12)
+    ylabel('Res?duo','FontSize',12)
+    
+    set(ax,'FontSize',12)
+    
+    title(num2str(pos))
+    saveas(gcf,strcat(folder,'/residuos-tendencia.png'))
+    close(fig)
 end
 
-
+%% Relat?rios
