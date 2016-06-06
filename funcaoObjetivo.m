@@ -1,4 +1,4 @@
-function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
+function [ fobj ] = funcaoObjetivo( pc, serie, uyy, setN )
 % Function para avaliar a fun????o objetivo do problema de identifica????o de estados estacion??rios
 %
 % Entradas:
@@ -11,6 +11,10 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 %
 % uyy: vetor linha contendo a incerteza dos pontos
 %
+% setN: com avaliar o n?mero de par?metros
+% setN = 1 -> N = 2*(sum(pc)+1);
+% setN = 2 -> N = sum(pc)+2*(sum(pc)+1);
+
 % TESTE:
 % serie = [1,1,1,2,2,2,2,3,3,3];
 % os pontos de corte est??o na posicao 3 e 7 da s??rie, logo, devem estar
@@ -20,10 +24,12 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 
 [ Residuo,~,~,~,~,~,~] = estimacao( serie, uyy, pc, false );
 
-N = 2*(sum(pc)+1);
-
-% n?mero de par?metros para teste
-%N = sum(pc)+2*(sum(pc)+1);
+% n?mero de par?metros para teste:
+if setN == 1
+    N = 2*(sum(pc)+1);
+else
+    N = sum(pc)+2*(sum(pc)+1);
+end
 
 SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);

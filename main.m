@@ -9,12 +9,14 @@ clc
 
 serie = [1.02,0.95,1.01,0.97,2,2.01,1.89,2,1.89,3.01,3,2.95,3,4,5,6,7,4.1,4.08,4.12,4.06,4.09];
 %serie = [1 1 1 2 2 2 3 3 3] ;
-%pc    =   [0,1,0,0,0,1,0,0]; 
-uyy   = 0.001*ones(1,length(serie)).^2;
+
+uyy   = 0.001*ones(1,length(serie));
 
 nRetas = 12;
 
 PA = 0.95;
+
+setN = 1;
 
 projeto = 'Teste';
 %% Otimiza??o
@@ -37,7 +39,7 @@ options= [];
 % Algoritmo gen?tico
 %                          ga(fitnessfcn                        ,nvars,...
 %                             A,b,[],[],LB,UB,nonlcon,IntCon,options)
-[pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy),nvars,...
+[pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy,setN),nvars,...
                               [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
                           
 [ residuo,retas,pontosAtivos,parametros,Uparametros,Residuos,FuncaoObjetivo ] = estimacao( serie, uyy, pontosCorte, true );
