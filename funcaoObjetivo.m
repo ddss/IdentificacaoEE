@@ -22,6 +22,9 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy )
 
 N = 2*(sum(pc)+1);
 
+% n?mero de par?metros para teste
+%N = sum(pc)+2*(sum(pc)+1);
+
 SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);
 
