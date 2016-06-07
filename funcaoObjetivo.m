@@ -1,4 +1,4 @@
-function [ fobj ] = funcaoObjetivo( pc, serie, uyy, setN )
+function [ fobj ] = funcaoObjetivo( pc, serie, uyy, setN, PA )
 % Function para avaliar a fun????o objetivo do problema de identifica????o de estados estacion??rios
 %
 % Entradas:
@@ -22,7 +22,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, setN )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-[ Residuo,~,~,~,~,~,~] = estimacao( serie, uyy, pc, false );
+[ Residuo,NE,~,~,~,~,~,~] = estimacao( serie, uyy, pc, PA, false );
 
 % n?mero de par?metros para teste:
 if setN == 1
@@ -35,9 +35,9 @@ SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);
 
 if N < length(serie) % impedir NaN
-    fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1));
+    fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
 else
-    fobj = (SSE/10^(-10))/(SST/(length(serie) - 1));
+    fobj = (SSE/10^(-10))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
 % valor da fun????o objetivo
 %fobj = N*log(var(Residuo))+ 2*(N+1);
 % fobj = sum(Residuo.^2)+2*(N-1);

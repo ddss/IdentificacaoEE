@@ -1,4 +1,4 @@
-function [ Residuo, retas, pontosAtivos, parametros, Uparametros, Residuos, FuncaoObjetivo ] = estimacao( serie, uyy, pc, armazenar )
+function [ Residuo, NE, retas, pontosAtivos, parametros, Uparametros, Residuos, FuncaoObjetivo, CandidatasEE ] = estimacao( serie, uyy, pc, PA, armazenar )
 % Fun????o para avaliar as retas: estima????o de par??metros e res??duos
 % serie: vetor linha contendo os dados
 % uyy: incerteza dos pontos
@@ -26,6 +26,9 @@ Uparametros    = {};
 Residuos       = {};
 FuncaoObjetivo = {};
 
+posCandidatasEE = 1;
+NE              = 0;
+CandidatasEE    = [];
 for pos = 1:length(pontosAtivos)-1;
     % obter os dados da reta
     dadosReta  = serie(pontosAtivos(pos):pontosAtivos(pos+1))';
@@ -47,12 +50,39 @@ for pos = 1:length(pontosAtivos)-1;
     end
     
     % armazenar as informa????es
+    
+    fobj = res_aux'/Uyy_aux*res_aux;
+    
     if armazenar
         retas{pos}       = dadosReta;
         parametros{pos}  = parametros_reta;
         Uparametros{pos} = inv(invUparametros_reta);
-        FuncaoObjetivo{pos} = res_aux'/Uyy_aux*res_aux;
+        FuncaoObjetivo{pos} = fobj;
         Residuos{pos}    = (dadosReta - xDummy*parametros_reta);
+    end
+    %% C?lculo da regi?o de abrang?ncia e verifica??o das retas candidatas
+    % Aqui est? apenas se calculando os pontos extremos da elipse
+    % Considerando que os par?metros seguem uma distribui??o normal
+
+    Fisher = finv(PA,2,(length(dadosReta)-2));
+    raioEllip = fobj*(2/(length(dadosReta)-2)*Fisher);
+
+    fator = invUparametros_reta(1,1)/(invUparametros_reta(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
+    delta = sqrt(raioEllip/(fator^2*invUparametros_reta(2,2)-2*fator*invUparametros_reta(1,2)+invUparametros_reta(1,1)));
+    coordenadas_x = [parametros_reta(1)+delta      ,parametros_reta(1)-delta];
+    coordenadas_y = [parametros_reta(2)-delta*fator,parametros_reta(2)+delta*fator];
+
+    fator = invUparametros_reta(2,2)/(invUparametros_reta(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
+    delta = sqrt(raioEllip/(fator^2*invUparametros_reta(1,1)-2*fator*invUparametros_reta(1,2)+invUparametros_reta(2,2)));
+    coordenadas_y = [coordenadas_y [parametros_reta(2)+delta      ,parametros_reta(2)-delta]];
+    coordenadas_x = [coordenadas_x [parametros_reta(1)-delta*fator,parametros_reta(1)+delta*fator]];
+
+    % Obten??o das posi??es das retas candidatas a EE
+    % - verificar se e ellipse do par?metro a, cruza o zero.
+    if and(any(coordenadas_x>0), any(coordenadas_x<0))
+        CandidatasEE(posCandidatasEE) = pos;
+        posCandidatasEE = posCandidatasEE+1;
+        NE = NE + length(dadosReta);
     end
 end
 
