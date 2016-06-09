@@ -1,4 +1,4 @@
-function [ fobj ] = funcaoObjetivo( pc, serie, uyy, setN, PA )
+function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 % Function para avaliar a fun????o objetivo do problema de identifica????o de estados estacion??rios
 %
 % Entradas:
@@ -11,6 +11,9 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, setN, PA )
 %
 % uyy: vetor linha contendo a incerteza dos pontos
 %
+% tipofobj: escolha da funçao objetivo
+% 1- R2ajustado com ponderaçao do numero de pontos em EE
+% 2- R2ajustado
 % setN: com avaliar o n?mero de par?metros
 % setN = 1 -> N = 2*(sum(pc)+1);
 % setN = 2 -> N = sum(pc)+2*(sum(pc)+1);
@@ -35,9 +38,18 @@ SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);
 
 if N < length(serie) % impedir NaN
-    fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
+    if tipofobj == 1
+        fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
+    else
+        fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1));
+    end
 else
-    fobj = (SSE/10^(-10))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
+    if tipofobj == 1
+        fobj = (SSE/10^(-10))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
+    else
+        fobj = (SSE/10^(-10))/(SST/(length(serie) - 1));
+    end
+end
 % valor da fun????o objetivo
 %fobj = N*log(var(Residuo))+ 2*(N+1);
 % fobj = sum(Residuo.^2)+2*(N-1);

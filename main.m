@@ -19,6 +19,7 @@ nRetas = 5;
 
 PA = 0.90;
 
+tipofobj = 1;
 setN = 2;
 
 projeto = 'Teste';
@@ -46,7 +47,7 @@ options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
 % Algoritmo gen?tico
 %                          ga(fitnessfcn                        ,nvars,...
 %                             A,b,[],[],LB,UB,nonlcon,IntCon,options)
-[pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy,setN, PA),nvars,...
+[pontosCorte,fval,exitflag,output] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
                               [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
                           
 [ residuo,~, retas,pontosAtivos,parametros,Uparametros,Residuos,FuncaoObjetivo, CandidatasEE ] = estimacao( serie, uyy, pontosCorte, PA, true );
