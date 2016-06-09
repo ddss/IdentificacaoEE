@@ -33,7 +33,7 @@ for pos = 1:length(pontosAtivos)-1;
     % obter os dados da reta
     dadosReta  = serie(pontosAtivos(pos):pontosAtivos(pos+1))';
     % obter os dados de x
-    xDummy     = [amostras(pontosAtivos(pos):pontosAtivos(pos+1));ones(1,length(dadosReta))]';
+    xDummy     = [1:length(dadosReta);ones(1,length(dadosReta))]';
     % matriz covari??ncia
     Uyy_aux    = Uyy(pontosAtivos(pos):pontosAtivos(pos+1),pontosAtivos(pos):pontosAtivos(pos+1));
     % estima????o dos par??metros - WLS
@@ -79,7 +79,7 @@ for pos = 1:length(pontosAtivos)-1;
 
     % Obten??o das posi??es das retas candidatas a EE
     % - verificar se e ellipse do par?metro a, cruza o zero.
-    if and(any(coordenadas_x>0), any(coordenadas_x<0))
+    if and(and(any(coordenadas_x>0), any(coordenadas_x<0)),and(any(coordenadas_y>mean(dadosReta)), any(coordenadas_y<mean(dadosReta))))
         CandidatasEE(posCandidatasEE) = pos;
         posCandidatasEE = posCandidatasEE+1;
         NE = NE + length(dadosReta);
