@@ -17,7 +17,7 @@ uyy   = 1*ones(1,length(serie));
 nRetas = 5;
 %serie = [1 1 1 2 2 2 3 3 3] ;
 
-PA = 0.90;
+PA = 0.95;
 
 tipofobj = 1;
 setN = 2;
@@ -38,8 +38,8 @@ UB = ones(1,nvars);
 % s?oo n?meros inteiros
 IntCon = 1:nvars;
 % definindo o vetor de op??es
-options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
-    'PopulationSize',500);
+options= gaoptimset('UseParallel','always','TolFun',1e-6,'TolCon',1e-6,...
+    'PopulationSize',100);
             %gaoptimset('Generations',1000,...
             %        'PopulationSize',35,'TolFun',1e-7,'TolCon',1e-7,...
             %        'UseParallel','always');PA
@@ -125,7 +125,7 @@ saveas(gcf, strcat('./',projeto,'/','geral.png'))
 for pos = CandidatasEE
     folder = strcat('./',projeto,'/','reta_',num2str(pos));
     
-    % RES?DUOS
+    % ======= RES?DUOS ========
 
     % BOXPLOT
     
@@ -169,7 +169,7 @@ for pos = CandidatasEE
     saveas(gcf,strcat(folder,'/residuos-tendencia.png'))
     close(fig)
     
-    % S?RIE
+    % ========= S?RIE ===========
     
     % BOXPLOT
     fig = figure('Visible','off');
@@ -225,6 +225,27 @@ for pos = CandidatasEE
     saveas(gcf,strcat(folder,'/dados-autocorr.png'))
     close(fig)
     
+    % ========= REGIAO ===========
+    
+    fig = figure('Visible','off');
+    ax = subplot(1,1,1);
+    hold(ax,'on')
+    Fisher = finv(PA,2,(length(retas{pos})-2));
+    aspect = FuncaoObjetivo{pos}*(2/(length(retas{pos})-2)*Fisher);
+    pontosEllip_aux = covellipse(parametros{pos},Uparametros{pos},aspect);
+        
+    plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'r--','LineWidth',2)
+    p_aux = parametros{pos};
+    plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
+    xlabel('Coef. Angular','FontSize',12)
+    ylabel('Coef. Linear','FontSize',12)
+    
+    set(ax,'FontSize',12)
+
+    title(num2str(pos))
+    saveas(gcf,strcat(folder,'/regiao-abrangencia.png'))
+    close(fig)
+    
 end
 
 %% Relat?rios
@@ -236,7 +257,7 @@ for pos = CandidatasEE
     
     fprintf(fileID,'Testes estatisticos para avaliar estacionaridade \n');
     fprintf(fileID,'Intervalo de amostra: %d a %d \n',pontosAtivos(pos),pontosAtivos(pos+1));
-    fprintf(fileID,'M?dia dos dados: %0.3g \n',mean(retas{pos}));    
+    fprintf(fileID,'M?dia dos dados: %0.3f \n',mean(retas{pos}));    
     fprintf('\n');
     fprintf(fileID,'=============RES?DUOS========== \n');
     
@@ -274,7 +295,7 @@ for pos = CandidatasEE
     if stat_test.serie.normks(pos)>(1-PA)
         h = 'n?o se pode rejeitar a hip?tese de que a s?rie seja normal'; 
     else
-        h = 'a s?rie n?o ? é normal.';
+        h = 'a s?rie n?o ? ?? normal.';
     end
         
     fprintf(fileID,' - Normalidade: %.3g \n',...
@@ -284,7 +305,7 @@ for pos = CandidatasEE
     if stat_test.serie.normlil(pos)>(1-PA)
         h = 'n?o se pode rejeitar a hip?tese de que a s?rie seja normal'; 
     else
-        h = 'a s?rie n?o ? é normal.';
+        h = 'a s?rie n?o ? ?? normal.';
     end
         
     fprintf(fileID,' - Normalidade: %.3g \n',...
