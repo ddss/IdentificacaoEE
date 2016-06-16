@@ -105,6 +105,8 @@ end
 
 %% Figuras
 
+pontosEllip = {};
+
 amostras = 1:length(serie);
 
 % S?rie de Dados
@@ -230,23 +232,71 @@ for pos = CandidatasEE
     fig = figure('Visible','off');
     ax = subplot(1,1,1);
     hold(ax,'on')
+    
     Fisher = finv(PA,2,(length(retas{pos})-2));
     aspect = FuncaoObjetivo{pos}*(2/(length(retas{pos})-2)*Fisher);
     pontosEllip_aux = covellipse(parametros{pos},Uparametros{pos},aspect);
         
-    plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'r--','LineWidth',2)
+    pontosEllip{pos} = pontosEllip_aux;
+    
+    pltellip = plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'b-','LineWidth',2);
     p_aux = parametros{pos};
     plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
+    
+    pltcoefang = plot([0 0],[min(pontosEllip_aux(:,2)),max(pontosEllip_aux(:,2))],'k-.','LineWidth',1.5);
+    pltmedia = plot([min(pontosEllip_aux(:,1)) max(pontosEllip_aux(:,1))],[mean(retas{pos}),mean(retas{pos})],'k-.','LineWidth',2);
+    
     xlabel('Coef. Angular','FontSize',12)
     ylabel('Coef. Linear','FontSize',12)
     
     set(ax,'FontSize',12)
+
+    leg = legend([pltellip,pltcoefang,pltmedia],{'regiao abrangencia','zero do coef. angular','media dos dados'});
 
     title(num2str(pos))
     saveas(gcf,strcat(folder,'/regiao-abrangencia.png'))
     close(fig)
     
 end
+
+% ========= REGIAO COMARACAO ===========
+    
+fig = figure('Visible','off');
+ax = subplot(1,1,1);
+hold(ax,'on')
+    
+for pos = CandidatasEE
+
+    pontosEllip_aux = pontosEllip{pos};
+    
+    plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'LineWidth',2);
+    p_aux = parametros{pos};
+    plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
+end
+
+limites_x = get(gca,'xlim');
+
+xlim([limites_x(1) - (1/10)*(limites_x(2)-limites_x(1)) limites_x(2)])
+
+for pos = CandidatasEE
+    
+    p_aux = parametros{pos};
+
+    text(limites_x(1) - (1/15)*(limites_x(2)-limites_x(1)),p_aux(2),strcat('reta  ',num2str(pos)))
+
+end
+
+limites = get(gca,'ylim');
+
+plot([0 0],[limites(1),limites(2)],'k-.','LineWidth',2);
+
+xlabel('Coef. Angular','FontSize',12)
+ylabel('Coef. Linear','FontSize',12)
+    
+set(ax,'FontSize',12)
+
+saveas(gcf,strcat('./',projeto,'/','regioes-comparacao.png'))
+close(fig)
 
 %% Relat?rios
 for pos = CandidatasEE

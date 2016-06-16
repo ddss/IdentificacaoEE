@@ -67,19 +67,20 @@ for pos = 1:length(pontosAtivos)-1;
     Fisher = finv(PA,2,(length(dadosReta)-2));
     aspect = fobj*(2/(length(dadosReta)-2)*Fisher);
 
-    fator = invUparametros_reta(1,1)/(invUparametros_reta(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
-    delta = sqrt(aspect/(fator^2*invUparametros_reta(2,2)-2*fator*invUparametros_reta(1,2)+invUparametros_reta(1,1)));
-    coordenadas_x = [parametros_reta(1)+delta      ,parametros_reta(1)-delta];
-    coordenadas_y = [parametros_reta(2)-delta*fator,parametros_reta(2)+delta*fator];
+    %fator = invUparametros_reta(1,1)/(invUparametros_reta(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
+    %delta = sqrt(aspect/(fator^2*invUparametros_reta(2,2)-2*fator*invUparametros_reta(1,2)+invUparametros_reta(1,1)));
+    %coordenadas_x = [parametros_reta(1)+delta      ,parametros_reta(1)-delta];
+    %coordenadas_y = [parametros_reta(2)-delta*fator,parametros_reta(2)+delta*fator];
 
-    fator = invUparametros_reta(2,2)/(invUparametros_reta(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
-    delta = sqrt(aspect/(fator^2*invUparametros_reta(1,1)-2*fator*invUparametros_reta(1,2)+invUparametros_reta(2,2)));
-    coordenadas_y = [coordenadas_y [parametros_reta(2)+delta      ,parametros_reta(2)-delta]];
-    coordenadas_x = [coordenadas_x [parametros_reta(1)-delta*fator,parametros_reta(1)+delta*fator]];
+    %fator = invUparametros_reta(2,2)/(invUparametros_reta(1,2) + eps); % eps evita NaN quando a covari?ncia ? zero.
+    %delta = sqrt(aspect/(fator^2*invUparametros_reta(1,1)-2*fator*invUparametros_reta(1,2)+invUparametros_reta(2,2)));
+    %coordenadas_y = [coordenadas_y [parametros_reta(2)+delta      ,parametros_reta(2)-delta]];
+    %coordenadas_x = [coordenadas_x [parametros_reta(1)-delta*fator,parametros_reta(1)+delta*fator]];
 
     % Obten??o das posi??es das retas candidatas a EE
     % - verificar se e ellipse do par?metro a, cruza o zero.
-    if and(and(any(coordenadas_x>0), any(coordenadas_x<0)),and(any(coordenadas_y>mean(dadosReta)), any(coordenadas_y<mean(dadosReta))))
+    %if and(and(any(coordenadas_x>0), any(coordenadas_x<0)),and(any(coordenadas_y>mean(dadosReta)), any(coordenadas_y<mean(dadosReta))))
+    if ([0;mean(dadosReta)]-parametros_reta)'*invUparametros_reta*([0;mean(dadosReta)]-parametros_reta) <= aspect
         CandidatasEE(posCandidatasEE) = pos;
         posCandidatasEE = posCandidatasEE+1;
         NE = NE + length(dadosReta);
