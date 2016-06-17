@@ -12,8 +12,9 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 % uyy: vetor linha contendo a incerteza dos pontos
 %
 % tipofobj: escolha da funçao objetivo
-% 1- R2ajustado com ponderaçao do numero de pontos em EE
-% 2- R2ajustado
+% 1 - R2ajustado com ponderaçao do numero de pontos em EE
+% 2 - R2ajustado
+% 3 - R2ajustado com phi
 % setN: com avaliar o n?mero de par?metros
 % setN = 1 -> N = 2*(sum(pc)+1);
 % setN = 2 -> N = sum(pc)+2*(sum(pc)+1);
@@ -25,7 +26,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-[ Residuo,NE,~,~,~,~,~,~] = estimacao( serie, uyy, pc, PA, false );
+[ Residuo,NE,~,~,~,~,~,~,~,phi] = estimacao( serie, uyy, pc, PA, false );
 
 % n?mero de par?metros para teste:
 if setN == 1
@@ -37,17 +38,23 @@ end
 SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);
 
-if N < length(serie) % impedir NaN
+NEprojeto = 30;
+
+if N*NE/NEprojeto < length(serie) % impedir NaN
     if tipofobj == 1
         fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
-    else
+    elseif tipofobj == 2
         fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1));
+    else
+        fobj = (SSE/(length(serie)-N*NE/NEprojeto))/(SST/(length(serie) - 1))/phi;
     end
 else
     if tipofobj == 1
         fobj = (SSE/10^(-10))/(SST/(length(serie) - 1)) + ((length(serie)-NE)/length(serie))^2;
-    else
+    elseif tipofobj == 2
         fobj = (SSE/10^(-10))/(SST/(length(serie) - 1));
+    else
+        fobj = (SSE/10^(-12))/(SST/(length(serie) - 1))/phi;
     end
 end
 % valor da fun????o objetivo
