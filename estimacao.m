@@ -96,11 +96,11 @@ for pos = 1:length(pontosAtivos)-1;
     if and(([0;mean(retas{pos})]-parametros{pos})'/Uparametros{pos}*([0;mean(retas{pos})]-parametros{pos}) <= aspect(pos),var_a(pos)<mean(var_a))
         CandidatasEE(posCandidatasEE) = pos;
         posCandidatasEE = posCandidatasEE+1;
-        NE = NE + length(dadosReta);
+        NE = NE + length(retas{pos});
         
         NEprojeto = 30;
         
-        phi = phi + NE/NEprojeto;
+        phi = phi + length(retas{pos})/NEprojeto;
     end
 
 end

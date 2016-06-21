@@ -51,7 +51,7 @@ UB = ones(1,nvars);
 IntCon = 1:nvars;
 % definindo o vetor de op??es
 options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
-    'PopulationSize',200,'Generations',500);
+    'PopulationSize',300,'Generations',500);
             %gaoptimset('Generations',1000,...
             %        'PopulationSize',35,'TolFun',1e-7,'TolCon',1e-7,...
             %        'UseParallel','always');PA
@@ -88,7 +88,7 @@ stat_test.serie.normks = ones(1,length(CandidatasEE));
 stat_test.serie.normlil = ones(1,length(CandidatasEE));
 
 
-for pos = CandidatasEE
+for pos = 1:length(retas)
     
     % RES?DUOS
     % Teste para verificar se a m?dia do res?duo de regress?o ? zero
@@ -117,7 +117,7 @@ end
 
 %% Configura??es de diret?rio:
 % criando folder
-for pos = CandidatasEE
+for pos = 1:length(retas)
     folder = strcat('./',projeto,'/','reta_',num2str(pos));
     if not(exist(folder,'dir'))
         mkdir(folder)
@@ -137,7 +137,7 @@ hold(ax,'on')
 plot(amostras,serie,'.','MarkerSize',15)
 coresretas = repmat(['m','g','k','c'],1,ceil(length(pontosAtivos)/4));
 
-for pos = 1:length(pontosAtivos)-1
+for pos = 1:length(retas)
     x = [1:length(retas{pos});ones(1,length(retas{pos}))]';
     y = x*parametros{pos};
     plot(amostras(pontosAtivos(pos):pontosAtivos(pos+1)),y,'--','LineWidth',1.5,'Color',coresretas(pos));
@@ -147,7 +147,7 @@ ylabel('Serie','FontSize',12)
 set(ax,'FontSize',12)
 saveas(gcf, strcat('./',projeto,'/','geral.png'))
 
-for pos = CandidatasEE
+for pos = 1:length(retas)
     folder = strcat('./',projeto,'/','reta_',num2str(pos));
     
     % ======= RES?DUOS ========
@@ -325,7 +325,7 @@ saveas(gcf,strcat('./',projeto,'/','regioes-comparacao.png'))
 close(fig)
 
 %% Relat?rios
-for pos = CandidatasEE
+for pos = 1:length(retas)
     
     folder = strcat('./',projeto,'/','reta_',num2str(pos));
    
@@ -387,6 +387,14 @@ for pos = CandidatasEE
     fprintf(fileID,' - Normalidade: %.3g \n',...
         stat_test.serie.normlil(pos));
     fprintf(fileID,' - - %s \n',h);
+    
+    fprintf(fileID,'\n');
+    
+    if isempty(find(CandidatasEE==pos, 1));
+        fprintf(fileID,'Nao é candidata a EE pelo criterio da regiao de abrangencia');
+    else
+        fprintf(fileID,'É candidata a EE pelo criterio da regiao de abrangencia');
+    end
     
     fclose(fileID);
 end
