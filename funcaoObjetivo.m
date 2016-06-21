@@ -11,8 +11,8 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 %
 % uyy: vetor linha contendo a incerteza dos pontos
 %
-% tipofobj: escolha da funçao objetivo
-% 1 - R2ajustado com ponderaçao do numero de pontos em EE
+% tipofobj: escolha da fun??ao objetivo
+% 1 - R2ajustado com pondera??ao do numero de pontos em EE
 % 2 - R2ajustado
 % 3 - R2ajustado com phi
 % setN: com avaliar o n?mero de par?metros
@@ -26,9 +26,9 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-[ Residuo,NE,~,~,~,~,~,~,~,phi] = estimacao( serie, uyy, pc, PA, false );
+[ Residuo,NE,~,~,~,~,~,~,~,~,~,phi] = estimacao( serie, uyy, pc, PA, false );
 
-% n?mero de par?metros para teste:
+% numero de parametros para teste:
 if setN == 1
     N = 2*(sum(pc)+1);
 else
@@ -46,7 +46,7 @@ if N*NE/NEprojeto < length(serie) % impedir NaN
     elseif tipofobj == 2
         fobj = (SSE/(length(serie)-N))/(SST/(length(serie) - 1));
     else
-        fobj = (SSE/(length(serie)-N*NE/NEprojeto))/(SST/(length(serie) - 1))/phi;
+        fobj = (SSE/(length(serie)-N*NE/NEprojeto))/(SST/(length(serie) - 1))/(phi+eps);
     end
 else
     if tipofobj == 1

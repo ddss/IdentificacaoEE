@@ -3,12 +3,12 @@
 %% Inicializa??o
 %matlabpool close  % force Paralelo
 
-%clear all
+clear all
 close all
 clc
 
 
-matlabpool open
+%matlabpool open
 
 % Habilitar o arquivo de teste
 series_teste
@@ -33,12 +33,15 @@ setN = 2;
 
 projeto = 'Teste-phi-mod';
 
-repetirOtimizacao = 2;
+repetirOtimizacao = 10;
 
 %% Otimiza??o
 
-% n?mero de vari?veis de decis?o
-nvars  = length(serie)-2;
+% numero de variaveis de decisao
+% -3 -> pois os limites sempre est?o ativos e o segundo ponto nao pode ser
+% ponto de corte
+% metade -> para evitar retas de 1 ponto (estimacao preenche o resto)
+nvars  = length(serie)-3;
 
 % Limite inferior
 LB = zeros(1,nvars);
@@ -51,7 +54,7 @@ UB = ones(1,nvars);
 IntCon = 1:nvars;
 % definindo o vetor de op??es
 options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
-    'PopulationSize',300,'Generations',500);
+    'PopulationSize',200,'Generations',500);
             %gaoptimset('Generations',1000,...
             %        'PopulationSize',35,'TolFun',1e-7,'TolCon',1e-7,...
             %        'UseParallel','always');PA
@@ -63,7 +66,10 @@ options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
 
 for cont = 1:repetirOtimizacao
     cont
-    [pontosCorte(cont,:),fval(cont),~, ~] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
+    %[pontosCorte(cont,:),fval(cont),~, ~] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
+    %                          [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
+
+    [pontosCorte,fval,~, ~] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
                               [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
 end
 
@@ -71,24 +77,24 @@ end
 
 pontosCorte = pontosCorte(indice,:);
 
-[ residuo,~, retas,pontosAtivos,parametros,Uparametros,Residuos,FuncaoObjetivo, CandidatasEE,~ ] = estimacao( serie, uyy, pontosCorte, PA, true );
+[ residuo,~, retas,pontosInicioAtivos, pontosFimAtivos, parametros,Uparametros,Residuos,FuncaoObjetivo, CandidatasEE,IndiceEstimacao,~ ] = estimacao( serie, uyy, pontosCorte, PA, true );
 
 %% Testes estat?sticos
 stat_test = {};
 stat_test.residuo = {};
 % p-valor do ttest
-stat_test.residuo.media = ones(1,length(CandidatasEE));
+stat_test.residuo.media = ones(1,length(pontosInicioAtivos));
 % p-valor Ljung-Box Q-test
-stat_test.serie.autocorrLjung = ones(1,length(CandidatasEE));
+stat_test.serie.autocorrLjung = ones(1,length(pontosInicioAtivos));
 % aleatoriedade
-stat_test.serie.random = ones(1,length(CandidatasEE));
+stat_test.serie.random = ones(1,length(pontosInicioAtivos));
 % normalidade - Kolmogorov-Smirnov
-stat_test.serie.normks = ones(1,length(CandidatasEE));
+stat_test.serie.normks = ones(1,length(pontosInicioAtivos));
 % normalidade - Lilliefors
-stat_test.serie.normlil = ones(1,length(CandidatasEE));
+stat_test.serie.normlil = ones(1,length(pontosInicioAtivos));
 
 
-for pos = 1:length(retas)
+for pos = 1:length(pontosInicioAtivos)
     
     % RES?DUOS
     % Teste para verificar se a m?dia do res?duo de regress?o ? zero
@@ -97,7 +103,11 @@ for pos = 1:length(retas)
     % S?RIE DE DADOS
     desvio = retas{pos} - mean(retas{pos});
     % autocorrela??o
-    [~,stat_test.serie.autocorrLjung(pos)] = lbqtest(desvio);
+    if length(desvio)>2
+        [~,stat_test.serie.autocorrLjung(pos)] = lbqtest(desvio);
+    else
+        stat_test.serie.autocorrLjung(pos) = NaN;
+    end
     % aleatoriedade
     if length(desvio)>5
         [~,stat_test.serie.random(pos)] = vratiotest(desvio);
@@ -105,7 +115,12 @@ for pos = 1:length(retas)
         stat_test.serie.random(pos) = NaN;
     end
     % normalidade - Kolmogorov-Smirnov 
-    [~,stat_test.serie.normks(pos)] = kstest(desvio);
+    if length(desvio)>2
+        [~,stat_test.serie.normks(pos)] = kstest(desvio);
+    else
+        stat_test.serie.normks(pos) = NaN;
+    end
+    
     % normalidade - Lilliefors
     if length(desvio)>5
         [~,stat_test.serie.normlil(pos)] = lillietest(desvio);
@@ -115,7 +130,7 @@ for pos = 1:length(retas)
 
 end
 
-%% Configura??es de diret?rio:
+%% Configuracoes de diretorio:
 % criando folder
 for pos = 1:length(retas)
     folder = strcat('./',projeto,'/','reta_',num2str(pos));
@@ -138,9 +153,11 @@ plot(amostras,serie,'.','MarkerSize',15)
 coresretas = repmat(['m','g','k','c'],1,ceil(length(pontosAtivos)/4));
 
 for pos = 1:length(retas)
-    x = [1:length(retas{pos});ones(1,length(retas{pos}))]';
-    y = x*parametros{pos};
-    plot(amostras(pontosAtivos(pos):pontosAtivos(pos+1)),y,'--','LineWidth',1.5,'Color',coresretas(pos));
+    if IndiceEstimacao{pos}
+        x = [1:length(retas{pos});ones(1,length(retas{pos}))]';
+        y = x*parametros{pos};
+        plot(amostras(pontosInicioAtivos(pos):pontosFimAtivos(pos)),y,'--','LineWidth',1.5,'Color',coresretas(pos));
+    end
 end
 xlabel('Amostra','FontSize',12)
 ylabel('Serie','FontSize',12)
@@ -148,153 +165,155 @@ set(ax,'FontSize',12)
 saveas(gcf, strcat('./',projeto,'/','geral.png'))
 
 for pos = 1:length(retas)
-    folder = strcat('./',projeto,'/','reta_',num2str(pos));
-    
-    % ======= RES?DUOS ========
+    if IndiceEstimacao{pos}
+        folder = strcat('./',projeto,'/','reta_',num2str(pos));
 
-    % BOXPLOT
-    
-    fig = figure('Visible','off');
-    ax = subplot(1,1,1);
-    boxplot(Residuos{pos})
-   
-    set(ax,'FontSize',12)
-    
-    title(num2str(pos))
-    saveas(gcf,strcat(folder,'/residuos-boxplot.png'))
-    close(fig)
-    
-    % DISPERS?O
-    
-    fig = figure('Visible','off');
-    ax = subplot(1,1,1);
-    hold(ax,'on')
-    
-    x = amostras(pontosAtivos(pos):pontosAtivos(pos+1));
-    meanRes = mean(Residuos{pos});
-    stdRes  = std(Residuos{pos});
-    
-    fatorK = tinv(PA,length(Residuos{pos})-1);
+        % ======= RES?DUOS ========
 
-    p1 = plot(x,Residuos{pos},'.','MarkerSize',15);  
-    p2 = plot([x(1) x(end)],[meanRes meanRes],'r--','LineWidth',2);
-    p3 = plot([x(1) x(end)],[meanRes+fatorK*stdRes meanRes+fatorK*stdRes],'r-.','LineWidth',2);
-    p4 = plot([x(1) x(end)],[meanRes-fatorK*stdRes meanRes-fatorK*stdRes],'r-.','LineWidth',2);
-    
-    leg = legend([p1,p2,p3],{'res?duos','m?dia','intervalo abrang?ncia'});
-    
-    set(leg,'box','off','Location','SouthOutside','Orientation','horizontal')
-    
-    xlabel('Amostra','FontSize',12)
-    ylabel('Res?duo','FontSize',12)
-    
-    set(ax,'FontSize',12)
-    
-    title(num2str(pos))
-    saveas(gcf,strcat(folder,'/residuos-tendencia.png'))
-    close(fig)
-    
-    % ========= S?RIE ===========
-    
-    % BOXPLOT
-    fig = figure('Visible','off');
-    ax = subplot(1,1,1);
-    boxplot(retas{pos})
-   
-    set(ax,'FontSize',12)
-    
-    title(num2str(pos))
-    saveas(gcf,strcat(folder,'/dados-boxplot.png'))
-    close(fig)
-    
-    % DISPERS?O
-    fig = figure('Visible','off');
-    ax = subplot(1,1,1);
-    hold(ax,'on')
-    
-    x = amostras(pontosAtivos(pos):pontosAtivos(pos+1));
-    meanReta = mean(retas{pos});
-    stdReta  = std(retas{pos});
-    
-    fatorK = tinv(PA,length(retas{pos})-1);
+        % BOXPLOT
 
-    p1 = plot(x,retas{pos},'.','MarkerSize',15);  
-    p2 = plot([x(1) x(end)],[meanReta meanReta],'r--','LineWidth',2);
-    p3 = plot([x(1) x(end)],[meanReta+fatorK*stdReta meanReta+fatorK*stdReta],'r-.','LineWidth',2);
-    p4 = plot([x(1) x(end)],[meanReta-fatorK*stdReta meanReta-fatorK*stdReta],'r-.','LineWidth',2);
-    
-    leg = legend([p1,p2,p3],{'res?duos','m?dia','intervalo abrang?ncia'});
-    
-    set(leg,'box','off','Location','SouthOutside','Orientation','horizontal')
-    
-    xlabel('Amostra','FontSize',12)
-    ylabel('Dados','FontSize',12)
-    
-    set(ax,'FontSize',12)
-    
-    title(num2str(pos))
-    saveas(gcf,strcat(folder,'/dados-tendencia.png'))
-    close(fig)
-    
-    % AUTOCORRELA??O
-    fig = figure('Visible','off');
-    ax = subplot(1,1,1);
-    autocorr(retas{pos});
+        fig = figure('Visible','off');
+        ax = subplot(1,1,1);
+        boxplot(Residuos{pos})
 
-    xlabel('Lag - Amostra','FontSize',12)
-    ylabel('Autocorrelacao','FontSize',12)
-    
-    set(ax,'FontSize',12)
+        set(ax,'FontSize',12)
 
-    title(num2str(pos))
-    saveas(gcf,strcat(folder,'/dados-autocorr.png'))
-    close(fig)
-    
-    % ========= REGIAO ===========
-    
-    fig = figure('Visible','off');
-    ax = subplot(1,1,1);
-    hold(ax,'on')
-    
-    Fisher = finv(PA,2,(length(retas{pos})-2));
-    aspect = FuncaoObjetivo{pos}*(2/(length(retas{pos})-2)*Fisher);
-    pontosEllip_aux = covellipse(parametros{pos},Uparametros{pos},aspect);
-        
-    pontosEllip{pos} = pontosEllip_aux;
-    
-    pltellip = plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'b-','LineWidth',2);
-    p_aux = parametros{pos};
-    plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
-    
-    pltcoefang = plot([0 0],[min(pontosEllip_aux(:,2)),max(pontosEllip_aux(:,2))],'k-.','LineWidth',1.5);
-    pltmedia = plot([min(pontosEllip_aux(:,1)) max(pontosEllip_aux(:,1))],[mean(retas{pos}),mean(retas{pos})],'k-.','LineWidth',2);
-    
-    xlabel('Coef. Angular','FontSize',12)
-    ylabel('Coef. Linear','FontSize',12)
-    
-    set(ax,'FontSize',12)
+        title(num2str(pos))
+        saveas(gcf,strcat(folder,'/residuos-boxplot.png'))
+        close(fig)
 
-    leg = legend([pltellip,pltcoefang,pltmedia],{'regiao abrangencia','zero do coef. angular','media dos dados'});
+        % DISPERS?O
 
-    title(num2str(pos))
-    saveas(gcf,strcat(folder,'/regiao-abrangencia.png'))
-    close(fig)
-    
+        fig = figure('Visible','off');
+        ax = subplot(1,1,1);
+        hold(ax,'on')
+
+        x = amostras(pontosInicioAtivos(pos):pontosFimAtivos(pos));
+        meanRes = mean(Residuos{pos});
+        stdRes  = std(Residuos{pos});
+
+        fatorK = tinv(PA,length(Residuos{pos})-1);
+
+        p1 = plot(x,Residuos{pos},'.','MarkerSize',15);  
+        p2 = plot([x(1) x(end)],[meanRes meanRes],'r--','LineWidth',2);
+        p3 = plot([x(1) x(end)],[meanRes+fatorK*stdRes meanRes+fatorK*stdRes],'r-.','LineWidth',2);
+        p4 = plot([x(1) x(end)],[meanRes-fatorK*stdRes meanRes-fatorK*stdRes],'r-.','LineWidth',2);
+
+        leg = legend([p1,p2,p3],{'residuos','media','intervalo abrangencia'});
+
+        set(leg,'box','off','Location','SouthOutside','Orientation','horizontal')
+
+        xlabel('Amostra','FontSize',12)
+        ylabel('Res?duo','FontSize',12)
+
+        set(ax,'FontSize',12)
+
+        title(num2str(pos))
+        saveas(gcf,strcat(folder,'/residuos-tendencia.png'))
+        close(fig)
+
+        % ========= S?RIE ===========
+
+        % BOXPLOT
+        fig = figure('Visible','off');
+        ax = subplot(1,1,1);
+        boxplot(retas{pos})
+
+        set(ax,'FontSize',12)
+
+        title(num2str(pos))
+        saveas(gcf,strcat(folder,'/dados-boxplot.png'))
+        close(fig)
+
+        % DISPERS?O
+        fig = figure('Visible','off');
+        ax = subplot(1,1,1);
+        hold(ax,'on')
+
+        x = amostras(pontosInicioAtivos(pos):pontosFimAtivos(pos));
+        meanReta = mean(retas{pos});
+        stdReta  = std(retas{pos});
+
+        fatorK = tinv(PA,length(retas{pos})-1);
+
+        p1 = plot(x,retas{pos},'.','MarkerSize',15);  
+        p2 = plot([x(1) x(end)],[meanReta meanReta],'r--','LineWidth',2);
+        p3 = plot([x(1) x(end)],[meanReta+fatorK*stdReta meanReta+fatorK*stdReta],'r-.','LineWidth',2);
+        p4 = plot([x(1) x(end)],[meanReta-fatorK*stdReta meanReta-fatorK*stdReta],'r-.','LineWidth',2);
+
+        leg = legend([p1,p2,p3],{'res?duos','m?dia','intervalo abrang?ncia'});
+
+        set(leg,'box','off','Location','SouthOutside','Orientation','horizontal')
+
+        xlabel('Amostra','FontSize',12)
+        ylabel('Dados','FontSize',12)
+
+        set(ax,'FontSize',12)
+
+        title(num2str(pos))
+        saveas(gcf,strcat(folder,'/dados-tendencia.png'))
+        close(fig)
+
+        % AUTOCORRELA??O
+        fig = figure('Visible','off');
+        ax = subplot(1,1,1);
+        autocorr(retas{pos});
+
+        xlabel('Lag - Amostra','FontSize',12)
+        ylabel('Autocorrelacao','FontSize',12)
+
+        set(ax,'FontSize',12)
+
+        title(num2str(pos))
+        saveas(gcf,strcat(folder,'/dados-autocorr.png'))
+        close(fig)
+
+        % ========= REGIAO ===========
+
+        fig = figure('Visible','off');
+        ax = subplot(1,1,1);
+        hold(ax,'on')
+
+        Fisher = finv(PA,2,(length(retas{pos})-2));
+        aspect = FuncaoObjetivo{pos}*(2/(length(retas{pos})-2)*Fisher);
+        pontosEllip_aux = covellipse(parametros{pos},Uparametros{pos},aspect);
+
+        pontosEllip{pos} = pontosEllip_aux;
+
+        pltellip = plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'b-','LineWidth',2);
+        p_aux = parametros{pos};
+        plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
+
+        pltcoefang = plot([0 0],[min(pontosEllip_aux(:,2)),max(pontosEllip_aux(:,2))],'k-.','LineWidth',1.5);
+        pltmedia = plot([min(pontosEllip_aux(:,1)) max(pontosEllip_aux(:,1))],[mean(retas{pos}),mean(retas{pos})],'k-.','LineWidth',2);
+
+        xlabel('Coef. Angular','FontSize',12)
+        ylabel('Coef. Linear','FontSize',12)
+
+        set(ax,'FontSize',12)
+
+        leg = legend([pltellip,pltcoefang,pltmedia],{'regiao abrangencia','zero do coef. angular','media dos dados'});
+
+        title(num2str(pos))
+        saveas(gcf,strcat(folder,'/regiao-abrangencia.png'))
+        close(fig)
+    end
 end
 
-% ========= REGIAO COMARACAO ===========
+% ========= REGIAO COMPARACAO ===========
     
 fig = figure('Visible','off');
 ax = subplot(1,1,1);
 hold(ax,'on')
     
 for pos = CandidatasEE
+    if IndiceEstimacao{pos}
+        pontosEllip_aux = pontosEllip{pos};
 
-    pontosEllip_aux = pontosEllip{pos};
-    
-    plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'LineWidth',2);
-    p_aux = parametros{pos};
-    plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
+        plot(pontosEllip_aux(:,1),pontosEllip_aux(:,2),'LineWidth',2);
+        p_aux = parametros{pos};
+        plot(p_aux(1),p_aux(2),'ro','MarkerSize',6)
+    end
 end
 
 limites_x = get(gca,'xlim');
@@ -325,14 +344,14 @@ saveas(gcf,strcat('./',projeto,'/','regioes-comparacao.png'))
 close(fig)
 
 %% Relat?rios
-for pos = 1:length(retas)
+for pos = 1:length(pontosInicioAtivos)
     
     folder = strcat('./',projeto,'/','reta_',num2str(pos));
    
     fileID = fopen(strcat(folder,'/','Testes.txt'),'w');
     
     fprintf(fileID,'Testes estatisticos para avaliar estacionaridade \n');
-    fprintf(fileID,'Intervalo de amostra: %d a %d \n',pontosAtivos(pos),pontosAtivos(pos+1));
+    fprintf(fileID,'Intervalo de amostra: %d a %d \n',pontosInicioAtivos(pos),pontosFimAtivos(pos));
     fprintf(fileID,'M?dia dos dados: %0.3f \n',mean(retas{pos}));    
     fprintf('\n');
     fprintf(fileID,'=============RES?DUOS========== \n');
@@ -381,7 +400,7 @@ for pos = 1:length(retas)
     if stat_test.serie.normlil(pos)>(1-PA)
         h = 'n?o se pode rejeitar a hip?tese de que a s?rie seja normal'; 
     else
-        h = 'a s?rie n?o ? ?? normal.';
+        h = 'a serie nao e normal.';
     end
         
     fprintf(fileID,' - Normalidade: %.3g \n',...
@@ -391,12 +410,12 @@ for pos = 1:length(retas)
     fprintf(fileID,'\n');
     
     if isempty(find(CandidatasEE==pos, 1));
-        fprintf(fileID,'Nao é candidata a EE pelo criterio da regiao de abrangencia');
+        fprintf(fileID,'Nao e candidata a EE pelo criterio da regiao de abrangencia');
     else
-        fprintf(fileID,'É candidata a EE pelo criterio da regiao de abrangencia');
+        fprintf(fileID,'E candidata a EE pelo criterio da regiao de abrangencia');
     end
     
     fclose(fileID);
 end
-matlabpool close
+%matlabpool close
 
