@@ -54,7 +54,7 @@ UB = ones(1,nvars);
 IntCon = 1:nvars;
 % definindo o vetor de op??es
 options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
-    'PopulationSize',200,'Generations',500);
+    'PopulationSize',300,'Generations',500);
             %gaoptimset('Generations',1000,...
             %        'PopulationSize',35,'TolFun',1e-7,'TolCon',1e-7,...
             %        'UseParallel','always');PA
@@ -66,10 +66,7 @@ options= gaoptimset('UseParallel','always','TolFun',1e-12,'TolCon',1e-12,...
 
 for cont = 1:repetirOtimizacao
     cont
-    %[pontosCorte(cont,:),fval(cont),~, ~] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
-    %                          [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
-
-    [pontosCorte,fval,~, ~] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
+    [pontosCorte(cont,:),fval(cont),~, ~] = ga(@(pc) funcaoObjetivo(pc,serie,uyy, tipofobj, setN, PA),nvars,...
                               [],[],[],[],LB,UB,@(pc) restricao(pc,nRetas),IntCon,options);
 end
 
@@ -150,7 +147,7 @@ figure()
 ax = subplot(1,1,1);
 hold(ax,'on')
 plot(amostras,serie,'.','MarkerSize',15)
-coresretas = repmat(['m','g','k','c'],1,ceil(length(pontosAtivos)/4));
+coresretas = repmat(['m','g','k','c'],1,ceil(length(pontosInicioAtivos)/4));
 
 for pos = 1:length(retas)
     if IndiceEstimacao{pos}
