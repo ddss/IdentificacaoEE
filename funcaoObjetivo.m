@@ -1,4 +1,4 @@
-function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
+function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, NEprojeto, PA )
 % Function para avaliar a fun????o objetivo do problema de identifica????o de estados estacion??rios
 %
 % Entradas:
@@ -18,6 +18,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 % setN: com avaliar o n?mero de par?metros
 % setN = 1 -> N = 2*(sum(pc)+1);
 % setN = 2 -> N = sum(pc)+2*(sum(pc)+1);
+% NEprojeto: numero de pontos minimo para ser EE
 
 % TESTE:
 % serie = [1,1,1,2,2,2,2,3,3,3];
@@ -26,7 +27,7 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, PA )
 % pc    =   [0,1,0,0,0,1,0,0]; 
 % uyy   = ones(1,length(serie)).^2;
 
-[ Residuo,NE,~,~,~,~,~,~,~,~,~,phi] = estimacao( serie, uyy, pc, PA, false );
+[ Residuo,NE,~,~,~,~,~,~,~,~,~,phi] = estimacao( serie, uyy, pc, PA, NEprojeto, false );
 
 % numero de parametros para teste:
 if setN == 1
@@ -37,8 +38,6 @@ end
 
 SSE = sum(Residuo.^2);
 SST = sum((serie-mean(serie)).^2);
-
-NEprojeto = 30;
 
 if N*NE/NEprojeto < length(serie) % impedir NaN
     if tipofobj == 1

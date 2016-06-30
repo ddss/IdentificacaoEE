@@ -1,4 +1,4 @@
-function [ Residuo, NE, retas, pontosInicioAtivos, pontosFimAtivos, parametros, Uparametros, Residuos, FuncaoObjetivo, CandidatasEE,IndiceEstimacao, phi ] = estimacao( serie, uyy, pc, PA, armazenar )
+function [ Residuo, NE, retas, pontosInicioAtivos, pontosFimAtivos, parametros, Uparametros, Residuos, FuncaoObjetivo, CandidatasEE,IndiceEstimacao, phi ] = estimacao( serie, uyy, pc, PA, NEprojeto, armazenar )
 % Funcaoo para avaliar as retas: estimacao de parametros e residuos
 % serie: vetor linha contendo os dados
 % uyy: incerteza dos pontos
@@ -6,6 +6,7 @@ function [ Residuo, NE, retas, pontosInicioAtivos, pontosFimAtivos, parametros, 
 % armazenar (bool): se retas, parametros e Uparametros devem ser
 % armazenados.
 % phi - penalizacaoo da funcao objetivo com base no numero de pontos
+% NEprojeto - numero de pontos minimo para ser EE
 
 % o segundo ponto n?o pode ser ponto de corte
 pc = [0 pc];
@@ -100,8 +101,6 @@ for pos = 1:length(pontosInicioAtivos);
         CandidatasEE(posCandidatasEE) = pos;
         posCandidatasEE = posCandidatasEE+1;
         NE = NE + length(retas{pos});
-        
-        NEprojeto = 30;
         
         phi = phi + length(retas{pos})/NEprojeto;
     end
