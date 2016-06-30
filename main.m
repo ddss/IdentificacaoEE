@@ -120,7 +120,7 @@ for pos = 1:length(pontosInicioAtivos{indice_otimo})
     end
     % normalidade - Kolmogorov-Smirnov 
     if length(desvio)>2
-        [~,stat_test.serie.normks(pos)] = kstest(desvio);
+        [~,stat_test.serie.normks(pos)] = kstest(desvio/std(desvio));
     else
         stat_test.serie.normks(pos) = NaN;
     end
