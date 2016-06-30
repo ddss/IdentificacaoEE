@@ -94,10 +94,21 @@ for pos = 1:length(pontosInicioAtivos);
 end
 
 for pos = 1:length(pontosInicioAtivos);
-    %% C?lculo da regi?o de abrang?ncia e verifica??o das retas candidatas
+    %% Calculo da regiao de abrangencia e verificacao das retas candidatas
     % Considerando que os parametros seguem uma distribuicao normal
+       
+    desvio = retas{pos} - mean(retas{pos});
     
-    if and(([0;mean(retas{pos})]-parametros{pos})'/Uparametros{pos}*([0;mean(retas{pos})]-parametros{pos}) <= aspect(pos),var_a(pos)<mean(var_a))
+    % Teste para avlaliar a autocorrelacao
+    if length(desvio)>max(2,ceil(0.3*NEprojeto))
+        [~,teste_autocorr] = lbqtest(desvio);
+    else
+        teste_autocorr = 0;
+    end
+    
+    
+    %if and(([0;mean(retas{pos})]-parametros{pos})'/Uparametros{pos}*([0;mean(retas{pos})]-parametros{pos}) <= aspect(pos),var_a(pos)<mean(var_a))
+    if and(([0;mean(retas{pos})]-parametros{pos})'/Uparametros{pos}*([0;mean(retas{pos})]-parametros{pos}) <= aspect(pos),teste_autocorr>=(1-PA))
         CandidatasEE(posCandidatasEE) = pos;
         posCandidatasEE = posCandidatasEE+1;
         NE = NE + length(retas{pos});

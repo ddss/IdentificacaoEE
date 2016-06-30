@@ -14,9 +14,9 @@ series_teste
 
 %serie = [1.02,0.95,1.01,0.97,2,2.01,1.89,2,1.89,3.01,3,2.95,3,4,5,6,7,4.1,4.08,4.12,4.06,4.09];
 %serie = [1 1 1 2 2 2 3 3 3] ;
-serie = [229.604599000000;226.687622100000;227.820114100000;229.907409700000;228.141418500000;230.153366100000;231.065383900000;229.407714800000;230.797912600000;229.163162200000;231.249160800000;232.265884400000;231.252777100000;231.539047200000;233.166824300000;233.332122800000;232.809249900000;233.270858800000;230.996933000000;232.833908100000;232.798996000000;233.840606700000;234.772781400000;232.139968900000;232.471939100000;234.406753500000;232.941848800000;231.381149300000;233.731506300000;233.150878900000;231.146347000000;232.640945400000;232.733856200000;233.160491900000;230.095550500000;231.057312000000;230.029037500000;233.827560400000;233.516861000000;233.714141800000;231.120559700000;232.040817300000;235.269226100000;233.175415000000;228.865325900000;232.330902100000;230.694442700000;231.959671000000;230.746398900000;232.896026600000;231.356857300000;235.484481800000;234.790420500000;231.641677900000;235.882095300000;233.969863900000;234.795013400000;232.874740600000;235.759841900000;234.014358500000;234.339447000000;231.794479400000;229.508087200000;230.994903600000;229.290115400000;229.806564300000;229.635940600000;228.726211500000;228.784912100000;230.039459200000;227.657623300000;228.108779900000;227.601760900000;226.256195100000;225.171173100000;228.148468000000;225.396652200000;224.723388700000;226.428482100000;222.853759800000;221.912399300000;224.512466400000;221.798858600000;222.577880900000;221.570877100000;219.529144300000;218.106185900000;220.487564100000;218.010437000000;219.559188800000;222.021499600000;216.721023600000;216.899734500000;221.097946200000;223.148620600000];
-serie = serie';
-%serie = [EE1 EE2 EE3 EE4 EE5];
+%serie = [229.604599000000;226.687622100000;227.820114100000;229.907409700000;228.141418500000;230.153366100000;231.065383900000;229.407714800000;230.797912600000;229.163162200000;231.249160800000;232.265884400000;231.252777100000;231.539047200000;233.166824300000;233.332122800000;232.809249900000;233.270858800000;230.996933000000;232.833908100000;232.798996000000;233.840606700000;234.772781400000;232.139968900000;232.471939100000;234.406753500000;232.941848800000;231.381149300000;233.731506300000;233.150878900000;231.146347000000;232.640945400000;232.733856200000;233.160491900000;230.095550500000;231.057312000000;230.029037500000;233.827560400000;233.516861000000;233.714141800000;231.120559700000;232.040817300000;235.269226100000;233.175415000000;228.865325900000;232.330902100000;230.694442700000;231.959671000000;230.746398900000;232.896026600000;231.356857300000;235.484481800000;234.790420500000;231.641677900000;235.882095300000;233.969863900000;234.795013400000;232.874740600000;235.759841900000;234.014358500000;234.339447000000;231.794479400000;229.508087200000;230.994903600000;229.290115400000;229.806564300000;229.635940600000;228.726211500000;228.784912100000;230.039459200000;227.657623300000;228.108779900000;227.601760900000;226.256195100000;225.171173100000;228.148468000000;225.396652200000;224.723388700000;226.428482100000;222.853759800000;221.912399300000;224.512466400000;221.798858600000;222.577880900000;221.570877100000;219.529144300000;218.106185900000;220.487564100000;218.010437000000;219.559188800000;222.021499600000;216.721023600000;216.899734500000;221.097946200000;223.148620600000];
+%serie = serie';
+serie = [EE1 EE2 EE3 EE4 EE5];
 %serie = serieTEST;
 
 uyy   = 1*ones(1,length(serie));
@@ -32,7 +32,7 @@ setN = 2;
 
 projeto = 'Teste-phi-mod';
 
-repetirOtimizacao = 1;
+repetirOtimizacao = 2;
 
 %% Otimizacao
 
@@ -146,13 +146,24 @@ end
 
 %% Figuras
 % Configuração das figuras
-        
+  
 pontosEllip = {};
 
 amostras = 1:length(serie);
 
+resolucao = '-r300';
+
+unidadeFig = 'inches';
+
+PaperPosition = [0 0 4*2 3*2];
+
+PaperSize = [8 6];
+
+Driver = '-dpdf';
+
+% Execucao
 % Serie de Dados
-figure()
+fig = figure('Visible','off');
 ax = subplot(1,1,1);
 hold(ax,'on')
 plot(amostras,serie,'.','MarkerSize',15)
@@ -168,7 +179,11 @@ end
 xlabel('Amostra','FontSize',12)
 ylabel('Serie','FontSize',12)
 set(ax,'FontSize',12)
-saveas(gcf, strcat('./',projeto,'/','geral.png'))
+
+set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+print(fig,Driver,strcat('./',projeto,'/','geral.pdf'),resolucao)
+close(fig)
+
 
 for pos = 1:length(retas{indice_otimo})
     if IndiceEstimacao{indice_otimo}{pos}
@@ -179,12 +194,13 @@ for pos = 1:length(retas{indice_otimo})
         fig = figure('Visible','off');
                 
         ax = subplot(1,1,1);
-        boxplot(Residuos{indice_otimo}{pos})
+        boxplot(Residuos{indice_otimo}{pos},'Labels',{strcat('reta ',num2str(pos))})
         set(ax,'FontSize',12)
 
         title(num2str(pos))
-         
-        saveas(gcf,strcat(folder_retas{pos},'/residuos-boxplot.png'))
+        
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/residuos-boxplot.pdf'),resolucao)
         close(fig)
 
         % DISPERSAO
@@ -212,24 +228,27 @@ for pos = 1:length(retas{indice_otimo})
         ylabel('Residuo','FontSize',12)
 
         set(ax,'FontSize',12)
-
+        
         title(num2str(pos))
-        saveas(gcf,strcat(folder_retas{pos},'/residuos-tendencia.png'))
+        
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/residuos-tendencia.pdf'),resolucao)
         close(fig)
-
+        
         % ========= SERIE ===========
 
         % BOXPLOT
         fig = figure('Visible','off');
         ax = subplot(1,1,1);
-        boxplot(retas{indice_otimo}{pos})
-
+        boxplot(retas{indice_otimo}{pos},'Labels',{strcat('reta ',num2str(pos))})
+        ylabel('Quartis');
+        
         set(ax,'FontSize',12)
-
-        title(num2str(pos))
-        saveas(gcf,strcat(folder_retas{pos},'/dados-boxplot.png'))
+     
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/dados-boxplot.pdf'),resolucao)
         close(fig)
-
+              
         % DISPERSAO
         fig = figure('Visible','off');
         ax = subplot(1,1,1);
@@ -256,7 +275,9 @@ for pos = 1:length(retas{indice_otimo})
         set(ax,'FontSize',12)
 
         title(num2str(pos))
-        saveas(gcf,strcat(folder_retas{pos},'/dados-tendencia.png'))
+        
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/dados-tendencia.pdf'),resolucao)
         close(fig)
 
         % AUTOCORRELACAO
@@ -270,7 +291,9 @@ for pos = 1:length(retas{indice_otimo})
         set(ax,'FontSize',12)
 
         title(num2str(pos))
-        saveas(gcf,strcat(folder_retas{pos},'/dados-autocorr.png'))
+        
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/dados-autocorr.pdf'),resolucao)
         close(fig)
 
         % HISTOGRAMA
@@ -284,8 +307,11 @@ for pos = 1:length(retas{indice_otimo})
         set(ax,'FontSize',12)
 
         title(num2str(pos))
-        saveas(gcf,strcat(folder_retas{pos},'/dados-histfit.png'))
+
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/dados-histfit.pdf'),resolucao)
         close(fig)
+
         
         % ========= REGIAO ===========
 
@@ -312,8 +338,13 @@ for pos = 1:length(retas{indice_otimo})
 
         leg = legend([pltellip,pltcoefang,pltmedia],{'regiao abrangencia','zero do coef. angular','media dos dados'});
 
+        set(leg,'box','off','Location','SouthOutside','Orientation','horizontal')
+
+        
         title(num2str(pos))
-        saveas(gcf,strcat(folder_retas{pos},'/regiao-abrangencia.png'))
+        
+        set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+        print(fig,Driver,strcat(folder_retas{pos},'/regiao-abrangencia.pdf'),resolucao)
         close(fig)
     end
 end
@@ -334,22 +365,26 @@ for pos = CandidatasEE{indice_otimo}
     end
 end
 
-limites_x = get(gca,'xlim');
+limites_x = get(ax,'xlim');
 
-xlim([limites_x(1) - (1/10)*(limites_x(2)-limites_x(1)) limites_x(2)])
+xlim([limites_x(1) - (1/10)*(limites_x(2)-limites_x(1)) limites_x(2)+(1/10)*(limites_x(2)-limites_x(1))])
 
+pos_aux = 1; % contador auxiliar para separar a indicacao das retas
 for pos = CandidatasEE{indice_otimo}
-    
     p_aux = parametros{indice_otimo}{pos};
-
-    x_aux = limites_x(1) - (1/15)*(limites_x(2)-limites_x(1));
+    if (-1)^pos_aux == 1 % se pos_aux for par
+        x_aux = limites_x(1) - (1/15)*(limites_x(2)-limites_x(1));
+    else % caso pos_aux seja impar
+        x_aux = limites_x(2) + (1/15)*(limites_x(2)-limites_x(1));
+    end
     
-    text(x_aux,p_aux(2),strcat('reta  ',num2str(pos)))
+    text(x_aux,p_aux(2),strcat('reta  ',num2str(pos)),'FontSize',12)
 
     plot([x_aux p_aux(1)],[p_aux(2) p_aux(2)],'--')
+    pos_aux = pos_aux + 1;
 end
 
-limites = get(gca,'ylim');
+limites = get(ax,'ylim');
 
 plot([0 0],[limites(1),limites(2)],'k-.','LineWidth',2);
 
@@ -358,8 +393,36 @@ ylabel('Coef. Linear','FontSize',12)
     
 set(ax,'FontSize',12)
 
-saveas(gcf,strcat('./',projeto,'/','regioes-comparacao.png'))
+set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+print(fig,Driver,strcat('./',projeto,'/','regioes-comparacao.pdf'),resolucao)
 close(fig)
+
+% ========= BOXPLOT COMPARACAO ===========
+fig = figure('Visible','off');
+ax = subplot(1,1,1);
+
+pos_aux = 1;
+vetor_retas = [];
+group_retas = [];
+boxplot_labels = {};
+for pos = CandidatasEE{indice_otimo}
+    vetor_retas = [vetor_retas;retas{indice_otimo}{pos}];
+    group_retas = [group_retas;pos_aux*ones(length(retas{indice_otimo}{pos}),1)];
+    
+    boxplot_labels{pos_aux} = strcat('reta ',num2str(pos));
+    
+    pos_aux = pos_aux + 1;
+end
+
+boxplot(vetor_retas,group_retas,'Labels',boxplot_labels)
+ylabel('Quartis');
+
+set(ax,'FontSize',12)
+
+set(fig,'PaperUnits',unidadeFig,'PaperPosition',PaperPosition,'PaperSize',PaperSize)
+print(fig,Driver,strcat('./',projeto,'/','boxplot-comparacao.pdf'),resolucao)
+close(fig)
+
 
 %% Relatorios
 % Resumo
@@ -484,9 +547,9 @@ for pos = 1:length(pontosInicioAtivos{indice_otimo})
     fprintf(fileID,'\n');
     
     if isempty(find(CandidatasEE{indice_otimo}==pos, 1));
-        fprintf(fileID,'Nao e candidata a EE pelo criterio da regiao de abrangencia');
+        fprintf(fileID,'Nao e candidata a EE pelo criterio da regiao de abrangencia e autocorrelacao');
     else
-        fprintf(fileID,'E candidata a EE pelo criterio da regiao de abrangencia');
+        fprintf(fileID,'E candidata a EE pelo criterio da regiao de abrangencia e autocorrelacao');
     end
     
     fclose(fileID);
