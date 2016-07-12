@@ -5,14 +5,6 @@ function [ c,ceq ] = restricao( pc,nRetas )
 
 ceq = [];
 
-if sum(pc) == 0
-    
-    c = 0;
-
-else
-    
-    c = log((sum(pc)+1)/nRetas)*10^10;
-
-end
+c = [];
 
 end

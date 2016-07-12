@@ -8,9 +8,6 @@ function [ Residuo, NE, retas, pontosInicioAtivos, pontosFimAtivos, parametros, 
 % phi - penalizacaoo da funcao objetivo com base no numero de pontos
 % NEprojeto - numero de pontos minimo para ser EE
 
-% o segundo ponto n?o pode ser ponto de corte
-pc = [0 pc];
-
 % gerando um vetor para identificar as amostras (posicoes)
 amostras = 1:length(serie);
 
@@ -18,10 +15,10 @@ amostras = 1:length(serie);
 Uyy = diag(uyy.^2);
 
 % Criando o vetor que contem as posicoes de inicio das retas
-pontosInicioAtivos = [1 find(pc==1)+1];
+pontosInicioAtivos = [1 sort(pc(1:pc(end)))]
 
 % Criando o vetor que contem as posicos de fim das retas
-pontosFimAtivos    = [find(pc==1) length(serie)];
+pontosFimAtivos    = [sort(pc(1:pc(end)))-1 length(serie)]
 
 % Avaliar as retas (Regressaoo de com multiplos pontos de corte - RLMPC);
 Residuo = zeros(1,length(serie));
@@ -44,12 +41,14 @@ var_a = ones(1,length(pontosInicioAtivos));
 
 for pos = 1:length(pontosInicioAtivos);
     % obter os dados da reta
-    dadosReta  = serie(pontosInicioAtivos(pos):pontosFimAtivos(pos))';
+    dadosReta  = serie(pontosInicioAtivos(pos):pontosFimAtivos(pos))'
+    size(dadosReta)
     % obter os dados de x
-    xDummy     = [1:length(dadosReta);ones(1,length(dadosReta))]';
+    xDummy     = [1:length(dadosReta);ones(1,length(dadosReta))]'
+    size(xDummy)
     % matriz covariancia
-    Uyy_aux    = Uyy(pontosInicioAtivos(pos):pontosFimAtivos(pos),pontosInicioAtivos(pos):pontosFimAtivos(pos));
-    
+    Uyy_aux    = Uyy(pontosInicioAtivos(pos):pontosFimAtivos(pos),pontosInicioAtivos(pos):pontosFimAtivos(pos))
+    size(Uyy_aux)
     if length(dadosReta)~=1
         % estimacao dos parametros - WLS
         invUparametros_reta = (xDummy'/(Uyy_aux)*xDummy);
