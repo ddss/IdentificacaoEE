@@ -15,10 +15,10 @@ amostras = 1:length(serie);
 Uyy = diag(uyy.^2);
 
 % Criando o vetor que contem as posicoes de inicio das retas
-pontosInicioAtivos = [1 sort(pc(1:pc(end)))]
+pontosInicioAtivos = [1 sort(pc(1:pc(end)))];
 
 % Criando o vetor que contem as posicos de fim das retas
-pontosFimAtivos    = [sort(pc(1:pc(end)))-1 length(serie)]
+pontosFimAtivos    = [sort(pc(1:pc(end)))-1 length(serie)];
 
 % Avaliar as retas (Regressaoo de com multiplos pontos de corte - RLMPC);
 Residuo = zeros(1,length(serie));
@@ -41,14 +41,14 @@ var_a = ones(1,length(pontosInicioAtivos));
 
 for pos = 1:length(pontosInicioAtivos);
     % obter os dados da reta
-    dadosReta  = serie(pontosInicioAtivos(pos):pontosFimAtivos(pos))'
-    size(dadosReta)
+    dadosReta  = serie(pontosInicioAtivos(pos):pontosFimAtivos(pos))';
+    
     % obter os dados de x
-    xDummy     = [1:length(dadosReta);ones(1,length(dadosReta))]'
-    size(xDummy)
+    xDummy     = [1:length(dadosReta);ones(1,length(dadosReta))]';
+   
     % matriz covariancia
-    Uyy_aux    = Uyy(pontosInicioAtivos(pos):pontosFimAtivos(pos),pontosInicioAtivos(pos):pontosFimAtivos(pos))
-    size(Uyy_aux)
+    Uyy_aux    = Uyy(pontosInicioAtivos(pos):pontosFimAtivos(pos),pontosInicioAtivos(pos):pontosFimAtivos(pos));
+   
     if length(dadosReta)~=1
         % estimacao dos parametros - WLS
         invUparametros_reta = (xDummy'/(Uyy_aux)*xDummy);
@@ -105,16 +105,14 @@ for pos = 1:length(pontosInicioAtivos);
         teste_autocorr = 0;
     end
     
-    
     %if and(([0;mean(retas{pos})]-parametros{pos})'/Uparametros{pos}*([0;mean(retas{pos})]-parametros{pos}) <= aspect(pos),var_a(pos)<mean(var_a))
     if and(([0;mean(retas{pos})]-parametros{pos})'/Uparametros{pos}*([0;mean(retas{pos})]-parametros{pos}) <= aspect(pos),teste_autocorr>=(1-PA))
         CandidatasEE(posCandidatasEE) = pos;
         posCandidatasEE = posCandidatasEE+1;
         NE = NE + length(retas{pos});
-        
+
         phi = phi + length(retas{pos})/NEprojeto;
     end
-
 end
 
 end

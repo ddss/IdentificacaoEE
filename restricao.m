@@ -5,6 +5,13 @@ function [ c,ceq ] = restricao( pc,nRetas )
 
 ceq = [];
 
-c = [];
+c = nRetas-1;
+for cont = 1:nRetas-1
+     
+    if pc(cont)<pc(cont+1)
+       c = c-1; 
+    end
+        
+end
 
 end

@@ -31,9 +31,9 @@ function [ fobj ] = funcaoObjetivo( pc, serie, uyy, tipofobj, setN, NEprojeto, P
 
 % numero de parametros para teste:
 if setN == 1
-    N = 2*(sum(pc)+1);
+    N = 2*(pc(end)+1);
 else
-    N = sum(pc)+2*(sum(pc)+1);
+    N = pc(end)+2*(pc(end)+1);
 end
 
 SSE = sum(Residuo.^2);
